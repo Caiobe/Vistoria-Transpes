@@ -85,9 +85,7 @@
 let latitude = null;
 let longitude = null;
 
-/* 🔴 COLE AQUI SUA URL DO APPS SCRIPT */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEgBQkLh8I450WI2ZLECDAUezo_1iQetUMt17KdcrkZoHF9H4A2dRZbwHbAiRxULtulw/exec";
-
 
 /* ===== GEOLOCALIZAÇÃO ===== */
 function iniciarLocalizacao() {
@@ -110,7 +108,6 @@ function iniciarLocalizacao() {
     { enableHighAccuracy: true }
   );
 }
-
 
 /* ===== ENVIO PARA PLANILHA ===== */
 async function enviarDados() {
@@ -142,33 +139,24 @@ async function enviarDados() {
   document.getElementById("status").textContent = "Enviando...";
 
   try {
-    const response = await fetch(SCRIPT_URL, {
+    await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(dados),
       mode: "no-cors"
-      }
     });
 
     document.getElementById("status").textContent = "✅ Enviado com sucesso!";
 
-    if (result.status === "ok") {
-      document.getElementById("status").textContent = "✅ Enviado com sucesso!";
-
-      document.getElementById("altura1").value = "";
-      document.getElementById("altura2").value = "";
-      document.getElementById("altura3").value = "";
-      document.getElementById("obs").value = "";
-
-    } else {
-      throw new Error(result.mensagem);
-    }
+    document.getElementById("altura1").value = "";
+    document.getElementById("altura2").value = "";
+    document.getElementById("altura3").value = "";
+    document.getElementById("obs").value = "";
 
   } catch (erro) {
     console.error(erro);
     document.getElementById("status").textContent = "❌ Erro ao enviar";
   }
 }
-
 
 /* ===== INICIALIZA ===== */
 iniciarLocalizacao();
