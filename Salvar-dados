@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Posição</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    .coords {
+      background: #eef;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Registro de Posição (Motorista)</h2>
+
+  <div class="coords">
+    <strong>Posição atual:</strong><br>
+    Lat: <span id="lat">-</span><br>
+    Lng: <span id="lng">-</span>
+  </div>
+
+  <label>Altura 1 (m)</label>
+  <input type="number" step="0.01" id="altura1">
+
+  <label>Altura 2 (m)</label>
+  <input type="number" step="0.01" id="altura2">
+
+  <label>Altura 3 (m)</label>
+  <input type="number" step="0.01" id="altura3">
+
+  <label>Observação</label>
+  <textarea id="obs" rows="3"></textarea>
+
+  <button onclick="enviarDados()">Enviar Registro</button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+let latitude = null;
+let longitude = null;
+
+/* 🔴 COLE AQUI SUA URL DO APPS SCRIPT */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEgBQkLh8I450WI2ZLECDAUezo_1iQetUMt17KdcrkZoHF9H4A2dRZbwHbAiRxULtulw/exec";
+
+
+/* ===== GEOLOCALIZAÇÃO ===== */
+function iniciarLocalizacao() {
+  if (!navigator.geolocation) {
+    alert("Geolocalização não suportada.");
+    return;
+  }
+
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+
+      document.getElementById("lat").textContent = latitude.toFixed(6);
+      document.getElementById("lng").textContent = longitude.toFixed(6);
+    },
+    (err) => {
+      alert("Erro ao obter localização: " + err.message);
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+
+/* ===== ENVIO PARA PLANILHA ===== */
+async function enviarDados() {
+  if (latitude === null || longitude === null) {
+    alert("Aguardando localização...");
+    return;
+  }
+
+  const altura1 = document.getElementById("altura1").value;
+  const altura2 = document.getElementById("altura2").value;
+  const altura3 = document.getElementById("altura3").value;
+  const obs = document.getElementById("obs").value;
+
+  if (!altura1 || !altura2 || !altura3) {
+    alert("Preencha as três alturas.");
+    return;
+  }
+
+  const dados = {
+    data_hora: new Date().toISOString(),
+    latitude: latitude,
+    longitude: longitude,
+    altura1: altura1,
+    altura2: altura2,
+    altura3: altura3,
+    observacao: obs
+  };
+
+  document.getElementById("status").textContent = "Enviando...";
+
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(dados),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.status === "ok") {
+      document.getElementById("status").textContent = "✅ Enviado com sucesso!";
+
+      document.getElementById("altura1").value = "";
+      document.getElementById("altura2").value = "";
+      document.getElementById("altura3").value = "";
+      document.getElementById("obs").value = "";
+
+    } else {
+      throw new Error(result.mensagem);
+    }
+
+  } catch (erro) {
+    console.error(erro);
+    document.getElementById("status").textContent = "❌ Erro ao enviar";
+  }
+}
+
+
+/* ===== INICIALIZA ===== */
+iniciarLocalizacao();
+</script>
+
+</body>
+</html>
