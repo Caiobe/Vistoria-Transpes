@@ -59,10 +59,17 @@
   <h2>Registro de Posição (Motorista)</h2>
 
   <div class="coords">
-    <strong>Posição atual:</strong><br>
+    <strong>Posição atual (GPS):</strong><br>
     Lat: <span id="lat">-</span><br>
     Lng: <span id="lng">-</span>
   </div>
+
+  <!-- NOVO: COORDENADA MANUAL -->
+  <label>Latitude manual (opcional)</label>
+  <input type="number" step="0.000001" id="lat_manual" min="-90" max="90">
+
+  <label>Longitude manual (opcional)</label>
+  <input type="number" step="0.000001" id="lng_manual" min="-180" max="180">
 
   <label>Altura 1 (m)</label>
   <input type="number" step="0.01" id="altura1">
@@ -109,11 +116,24 @@ function iniciarLocalizacao() {
   );
 }
 
-/* ===== ENVIO PARA PLANILHA ===== */
+/* ===== ENVIO ===== */
 async function enviarDados() {
-  if (latitude === null || longitude === null) {
-    alert("Aguardando localização...");
-    return;
+
+  const latManual = document.getElementById("lat_manual").value;
+  const lngManual = document.getElementById("lng_manual").value;
+
+  let latFinal = latitude;
+  let lngFinal = longitude;
+
+  // Prioridade: coordenada manual
+  if (latManual && lngManual) {
+    latFinal = parseFloat(latManual);
+    lngFinal = parseFloat(lngManual);
+  } else {
+    if (latitude === null || longitude === null) {
+      alert("Aguardando GPS ou preencha coordenadas manualmente.");
+      return;
+    }
   }
 
   const altura1 = document.getElementById("altura1").value;
@@ -128,8 +148,8 @@ async function enviarDados() {
 
   const dados = {
     data_hora: new Date().toISOString(),
-    latitude: latitude,
-    longitude: longitude,
+    latitude: latFinal,
+    longitude: lngFinal,
     altura1: altura1,
     altura2: altura2,
     altura3: altura3,
@@ -147,10 +167,13 @@ async function enviarDados() {
 
     document.getElementById("status").textContent = "✅ Enviado com sucesso!";
 
+    // Limpa campos
     document.getElementById("altura1").value = "";
     document.getElementById("altura2").value = "";
     document.getElementById("altura3").value = "";
     document.getElementById("obs").value = "";
+    document.getElementById("lat_manual").value = "";
+    document.getElementById("lng_manual").value = "";
 
   } catch (erro) {
     console.error(erro);
