@@ -72,13 +72,13 @@
   <input type="number" step="0.000001" id="lng_manual" min="-180" max="180">
 
   <label>Altura 1 (m)</label>
-  <input type="number" step="0.01" id="altura1">
+  <input type="number" step="0.01" id="altura (esquerda)">
 
   <label>Altura 2 (m)</label>
-  <input type="number" step="0.01" id="altura2">
+  <input type="number" step="0.01" id="altura (centro)">
 
   <label>Altura 3 (m)</label>
-  <input type="number" step="0.01" id="altura3">
+  <input type="number" step="0.01" id="altura (direita)">
 
   <label>Observação</label>
   <textarea id="obs" rows="3"></textarea>
@@ -139,13 +139,13 @@ async function enviarDados() {
     }
   }
 
-  const altura1 = document.getElementById("altura1").value;
-  const altura2 = document.getElementById("altura2").value;
-  const altura3 = document.getElementById("altura3").value;
+  const altura (esquerda) = document.getElementById("altura (esquerda)").value;
+  const altura (centro) = document.getElementById("altura (centro)").value;
+  const altura (direita) = document.getElementById("altura (direita)").value;
   const obs = document.getElementById("obs").value;
   const fonte = document.getElementById("fonte").value;
   
-  if (!altura1 || !altura2 || !altura3) {
+  if (!altura (esquerda) || !altura (centro) || !altura (direita)) {
     alert("Preencha as três alturas.");
     return;
   }
@@ -154,9 +154,9 @@ async function enviarDados() {
     data_hora: new Date().toISOString(),
     latitude: latFinal,
     longitude: lngFinal,
-    altura1: altura1,
-    altura2: altura2,
-    altura3: altura3,
+    altura (esquerda): altura (esquerda),
+    altura (centro): altura (centro),
+    altura (direita): altura (direita),
     observacao: obs,
     fonte: fonte,
   };
@@ -173,9 +173,9 @@ async function enviarDados() {
     document.getElementById("status").textContent = "✅ Enviado com sucesso!";
 
     // Limpa campos
-    document.getElementById("altura1").value = "";
-    document.getElementById("altura2").value = "";
-    document.getElementById("altura3").value = "";
+    document.getElementById("altura (esquerda)").value = "";
+    document.getElementById("altura (centro)").value = "";
+    document.getElementById("altura (direita)").value = "";
     document.getElementById("obs").value = "";
     document.getElementById("lat_manual").value = "";
     document.getElementById("lng_manual").value = "";
