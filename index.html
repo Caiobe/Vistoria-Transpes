@@ -26,7 +26,7 @@
     }
 
     label {
-      displayfind: block;
+      display: block;
       margin-top: 10px;
       font-weight: bold;
     }
@@ -35,6 +35,164 @@
       width: 100%;
       padding: 8px;
       margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    .coords {
+      background: #eef;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Registro de Posição (Motorista)</h2>
+
+  <div class="coords">
+    <strong>Posição atual (GPS):</strong><br>
+    Lat: <span id="lat">-</span><br>
+    Lng: <span id="lng">-</span>
+  </div>
+
+  <!-- NOVO: COORDENADA MANUAL -->
+  <label>Latitude manual (opcional)</label>
+  <input type="number" step="0.000001" id="lat_manual" min="-90" max="90">
+
+  <label>Longitude manual (opcional)</label>
+  <input type="number" step="0.000001" id="lng_manual" min="-180" max="180">
+
+  <label>Altura 1 (m)</label>
+  <input type="number" step="0.01" id="altura1">
+
+  <label>Altura 2 (m)</label>
+  <input type="number" step="0.01" id="altura2">
+
+  <label>Altura 3 (m)</label>
+  <input type="number" step="0.01" id="altura3">
+
+  <label>Observação</label>
+  <textarea id="obs" rows="3"></textarea>
+  
+  <label>Fonte (EVG / referência)</label>
+  <input type="text" id="fonte" placeholder="Ex: EVG123, nome do arquivo, etc.">
+  
+  <button onclick="enviarDados()">Enviar Registro</button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+let latitude = null;
+let longitude = null;
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEgBQkLh8I450WI2ZLECDAUezo_1iQetUMt17KdcrkZoHF9H4A2dRZbwHbAiRxULtulw/exec";
+
+/* ===== GEOLOCALIZAÇÃO ===== */
+function iniciarLocalizacao() {
+  if (!navigator.geolocation) {
+    alert("Geolocalização não suportada.");
+    return;
+  }
+
+  navigator.geolocation.watchPosition(
+    (pos) => {
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+
+      document.getElementById("lat").textContent = latitude.toFixed(6);
+      document.getElementById("lng").textContent = longitude.toFixed(6);
+    },
+    (err) => {
+      alert("Erro ao obter localização: " + err.message);
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+/* ===== ENVIO ===== */
+async function enviarDados() {
+
+  const latManual = document.getElementById("lat_manual").value;
+  const lngManual = document.getElementById("lng_manual").value;
+
+  let latFinal = latitude;
+  let lngFinal = longitude;
+
+  // Prioridade: coordenada manual
+  if (latManual && lngManual) {
+    latFinal = parseFloat(latManual);
+    lngFinal = parseFloat(lngManual);
+  } else {
+    if (latitude === null || longitude === null) {
+      alert("Aguardando GPS ou preencha coordenadas manualmente.");
+      return;
+    }
+  }
+
+  const altura1 = document.getElementById("altura1").value;
+  const altura2 = document.getElementById("altura2").value;
+  const altura3 = document.getElementById("altura3").value;
+  const obs = document.getElementById("obs").value;
+  const fonte = document.getElementById("fonte").value;
+  
+  if (!altura1 || !altura2 || !altura3) {
+    alert("Preencha as três alturas.");
+    return;
+  }
+
+  const dados = {
+    data_hora: new Date().toISOString(),
+    latitude: latFinal,
+    longitude: lngFinal,
+    altura1: altura1,
+    altura2: altura2,
+    altura3: altura3,
+    observacao: obs,
+    fonte: fonte,
+  };
+
+  document.getElementById("status").textContent = "Enviando...";
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(dados),
+      mode: "no-cors"
+    });
+
+    document.getElementById("status").textContent = "✅ Enviado com sucesso!";
+
+    // Limpa campos
+    document.getElementById("altura1").value = "";
+    document.getElementById("altura2").value = "";
+    document.getElementById("altura3").value = "";
+    document.getElementById("obs").value = "";
+    document.getElementById("lat_manual").value = "";
+    document.getElementById("lng_manual").value = "";
+    document.getElementById("fonte").value = "";
+    
+  } catch (erro) {
+    console.error(erro);
+    document.getElementById("status").textContent = "❌ Erro ao enviar";
+  }
+}
+
+/* ===== INICIALIZA ===== */
+iniciarLocalizacao();
+</script>
+
+</body>
+</html>      margin-top: 5px;
       box-sizing: border-box;
     }
 
