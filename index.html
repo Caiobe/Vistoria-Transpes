@@ -173,7 +173,10 @@ const btnAplicarRegistro = document.getElementById("btnAplicarRegistro");
 fileInput.addEventListener("change", (event) => {
   const [arquivo] = event.target.files || [];
   imagemSelecionada = arquivo || null;
-
+  arquivoAtualEhPDF = imagemSelecionada &&
+    (imagemSelecionada.type === "application/pdf" ||
+     imagemSelecionada.name.toLowerCase().endsWith(".pdf"));
+  
   if (!imagemSelecionada) {
     fileMeta.textContent = "Nenhum arquivo selecionado.";
     return;
@@ -255,7 +258,6 @@ function iniciarLocalizacao() {
 
 async function executarOCR(arquivo, progressoCallback) {
   await aguardarBiblioteca("Tesseract", 15000);
-  }
 
   const resultado = await window.Tesseract.recognize(arquivo, "por+eng", {
     logger: (info) => {
@@ -332,6 +334,7 @@ function extrairDadosDaImagem(textoBruto) {
     rodoviaKm,
     texto
   };
+}
   
 function extrairRegistrosDaPagina(textoBruto, pagina) {
   const texto = normalizarTexto(textoBruto);
@@ -530,7 +533,7 @@ async function enviarDados() {
   const altura2 = document.getElementById("altura2").value;
   const altura3 = document.getElementById("altura3").value;
   const obs = document.getElementById("obs").value;
-  const fonte = fonteInput.value.trim();
+  const fonte = document.getElementById("fonte").value.trim();
   
   if (!altura1 || !altura2 || !altura3) {
     alert("Preencha as três alturas.");
@@ -567,7 +570,6 @@ async function enviarDados() {
     document.getElementById("lat_manual").value = "";
     document.getElementById("lng_manual").value = "";
     document.getElementById("fonte").value = "";
-    fonteInput.value = "";
     
   } catch (erro) {
     console.error(erro);
