@@ -158,6 +158,7 @@ let latitude = null;
 let longitude = null;
 let imagemSelecionada = null;
 let registrosDetectados = [];
+let arquivoAtualEhPDF = false;
   
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEgBQkLh8I450WI2ZLECDAUezo_1iQetUMt17KdcrkZoHF9H4A2dRZbwHbAiRxULtulw/exec";
   
@@ -200,10 +201,11 @@ btnLerImagem.addEventListener("click", async () => {
       ocrLog.textContent = msg;
     });
 
-    registrosDetectados = paginasTexto.map((item) => ({
-      pagina: item.pagina,
-      ...extrairDadosDaImagem(item.texto)
-    })).filter((registro) => registro.alturas.LE || registro.alturas.LC || registro.alturas.LD);
+    registrosDetectados = paginasTexto.flatMap((item) =>
+      extrairRegistrosDaPagina(item.texto, item.pagina)
+    ).filter((registro) =>
+      registro.alturas.LE || registro.alturas.LC || registro.alturas.LD
+    );
 
     if (!registrosDetectados.length) {
       ocrLog.textContent = "OCR finalizado, mas nenhum local válido foi identificado.";
@@ -252,8 +254,7 @@ function iniciarLocalizacao() {
 }
 
 async function executarOCR(arquivo, progressoCallback) {
-  while (!window.Tesseract) {
-    await new Promise(r => setTimeout(r, 100));
+  await aguardarBiblioteca("Tesseract", 15000);
   }
 
   const resultado = await window.Tesseract.recognize(arquivo, "por+eng", {
@@ -279,9 +280,7 @@ async function lerArquivoEmPaginas(arquivo, progressoCallback) {
     return [{ pagina: 1, texto }];
   }
 
-  while (!window.pdfjsLib) {
-  await new Promise(r => setTimeout(r, 100));
-  }
+  await aguardarBiblioteca("pdfjsLib", 15000);
 
   const bytes = new Uint8Array(await arquivo.arrayBuffer());
   const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
@@ -311,18 +310,63 @@ async function lerArquivoEmPaginas(arquivo, progressoCallback) {
   return paginas;
 }
 
+async function aguardarBiblioteca(nomeGlobal, timeoutMs = 10000) {
+  const inicio = Date.now();
+  while (!window[nomeGlobal]) {
+    if (Date.now() - inicio > timeoutMs) {
+      throw new Error(`Biblioteca ${nomeGlobal} não carregou no tempo esperado.`);
+    }
+    await new Promise((r) => setTimeout(r, 120));
+  }
+}
+  
 function extrairDadosDaImagem(textoBruto) {
   const texto = normalizarTexto(textoBruto);
   const alturas = extrairAlturas(texto);
   const coordenadas = extrairCoordenadas(texto);
   const rodoviaKm = extrairRodoviaKm(texto);
-
+  
   return {
     alturas,
     coordenadas,
     rodoviaKm,
     texto
   };
+  
+function extrairRegistrosDaPagina(textoBruto, pagina) {
+  const texto = normalizarTexto(textoBruto);
+  const coords = extrairTodasCoordenadasComIndice(texto);
+
+  if (!coords.length) {
+    return [{ pagina, ...extrairDadosDaImagem(texto) }];
+  }
+
+  const registros = [];
+
+  for (let i = 0; i < coords.length; i++) {
+    const atual = coords[i];
+    const proxima = coords[i + 1];
+    const inicio = Math.max(0, atual.index - 120);
+    const fim = proxima ? proxima.index : texto.length;
+    const bloco = texto.slice(inicio, fim);
+    
+    const alturas = extrairAlturas(bloco);
+    const rodoviaKm = extrairRodoviaKm(bloco) || extrairRodoviaKm(texto);
+    
+    registros.push({
+      pagina,
+      alturas: extrairAlturas(bloco),
+      coordenadas: {
+        latitude: atual.latitude,
+        longitude: atual.longitude
+      },
+      rodoviaKm: extrairRodoviaKm(bloco) || extrairRodoviaKm(texto),
+      texto: bloco
+    });
+  }
+
+  return registros;
+}
 }
 
 function normalizarTexto(texto) {
@@ -358,21 +402,37 @@ function extrairAlturas(texto) {
 }
 
 function extrairCoordenadas(texto) {
-  const regex = /([0-9]{1,2}[.,][0-9]+)\s*([NS])[^0-9]*([0-9]{1,3}[.,][0-9]+)\s*([EW])/i;
-  const match = texto.match(regex);
-  if (!match) return null;
-
-  const latBase = parseFloat(match[1].replace(",", "."));
-  const latHemi = match[2].toUpperCase();
-  const lngBase = parseFloat(match[3].replace(",", "."));
-  const lngHemi = match[4].toUpperCase();
-
-  if (Number.isNaN(latBase) || Number.isNaN(lngBase)) return null;
-
+  const todas = extrairTodasCoordenadasComIndice(texto);
+  if (!todas.length) return null;
   return {
-    latitude: latHemi === "S" ? -latBase : latBase,
-    longitude: lngHemi === "W" ? -lngBase : lngBase
+    latitude: todas[0].latitude,
+    longitude: todas[0].longitude
   };
+}
+  
+function extrairTodasCoordenadasComIndice(texto) {
+  const regex = /([0-9]{1,2}[.,][0-9]{3,8})\s*([NS])[^0-9A-Z]*([0-9]{1,3}[.,][0-9]{3,8})\s*([EWO])/gi;
+  const resultados = [];
+  let match;
+
+  while ((match = regex.exec(texto)) !== null) {
+    const latBase = parseFloat(match[1].replace(",", "."));
+    const latHemi = (match[2] || "").toUpperCase();
+    const lngBase = parseFloat(match[3].replace(",", "."));
+    const lngHemiBruto = (match[4] || "").toUpperCase();
+    const lngHemi = lngHemiBruto === "O" ? "W" : lngHemiBruto; // OCR comum em pt-BR: Oeste -> O
+
+    if (Number.isNaN(latBase) || Number.isNaN(lngBase)) continue;
+    if (latBase > 90 || lngBase > 180) continue;
+
+    resultados.push({
+      index: match.index,
+      latitude: latHemi === "S" ? -latBase : latBase,
+      longitude: lngHemi === "W" ? -lngBase : lngBase
+    });
+  }
+
+  return resultados;
 }
 
 function extrairRodoviaKm(texto) {
@@ -383,22 +443,9 @@ function extrairRodoviaKm(texto) {
 }
 
 function preencherCampos(dados) {
-  document.getElementById("altura1").value = "";
-  document.getElementById("altura2").value = "";
-  document.getElementById("altura3").value = "";
-  document.getElementById("lat_manual").value = "";
-  document.getElementById("lng_manual").value = "";
   const { alturas, coordenadas, rodoviaKm } = dados;
   let preenchidos = 0;
 
-  if (alturas.LE && !alturas.LC && !alturas.LD) {
-    alturas.LC = alturas.LE;
-    alturas.LD = alturas.LE;
-  }
-
-  if (alturas.LE && alturas.LC && !alturas.LD) {
-    alturas.LD = alturas.LC;
-  }
   if (alturas.LE) {
     document.getElementById("altura1").value = alturas.LE.toFixed(2);
     preenchidos += 1;
@@ -454,10 +501,14 @@ function aplicarRegistroSelecionado() {
   if (!registro) return;
   preencherCampos(registro);
 }
-  
+
 /* ===== ENVIO ===== */
 async function enviarDados() {
-
+  if (arquivoAtualEhPDF && registrosDetectados.length) {
+    await enviarLoteDetectado();
+    return;
+  }
+  
   const latManual = document.getElementById("lat_manual").value;
   const lngManual = document.getElementById("lng_manual").value;
 
@@ -479,7 +530,7 @@ async function enviarDados() {
   const altura2 = document.getElementById("altura2").value;
   const altura3 = document.getElementById("altura3").value;
   const obs = document.getElementById("obs").value;
-  const fonte = document.getElementById("fonte").value;
+  const fonte = fonteInput.value.trim();
   
   if (!altura1 || !altura2 || !altura3) {
     alert("Preencha as três alturas.");
@@ -494,7 +545,7 @@ async function enviarDados() {
     altura2: altura2,
     altura3: altura3,
     observacao: obs,
-    fonte: fonte,
+    fonte: fonte
   };
 
   document.getElementById("status").textContent = "Enviando...";
@@ -516,6 +567,7 @@ async function enviarDados() {
     document.getElementById("lat_manual").value = "";
     document.getElementById("lng_manual").value = "";
     document.getElementById("fonte").value = "";
+    fonteInput.value = "";
     
   } catch (erro) {
     console.error(erro);
@@ -523,8 +575,82 @@ async function enviarDados() {
   }
 }
 
+function validarRegistroParaEnvio(registro) {
+  const { alturas, coordenadas } = registro;
+  if (!alturas || !coordenadas) return false;
+  if ([alturas.LE, alturas.LC, alturas.LD].some((v) => !v || Number.isNaN(v))) return false;
+  if (typeof coordenadas.latitude !== "number" || typeof coordenadas.longitude !== "number") return false;
+  return true;
+}
+
+async function enviarLoteDetectado() {
+  const validos = registrosDetectados.filter(validarRegistroParaEnvio);
+  const ignorados = registrosDetectados.length - validos.length;
+
+  if (!validos.length) {
+    alert("Nenhum registro válido para envio em lote.");
+    return;
+  }
+
+  document.getElementById("status").textContent = `Enviando ${validos.length} registros...`;
+  let enviados = 0;
+  let falhas = 0;
+
+  for (const registro of validos) {
+    const obsAtual = document.getElementById("obs").value.trim();
+    const prefixo = registro.rodoviaKm ? `[${registro.rodoviaKm}]` : `[Página ${registro.pagina}]`;
+    const observacao = obsAtual ? `${prefixo} ${obsAtual}` : prefixo;
+    const fonte = fonteInput.value.trim();
+
+    const payload = {
+      data_hora: new Date().toISOString(),
+      latitude: registro.coordenadas.latitude,
+      longitude: registro.coordenadas.longitude,
+      altura1: registro.alturas.LE.toFixed(2),
+      altura2: registro.alturas.LC.toFixed(2),
+      altura3: registro.alturas.LD.toFixed(2),
+      observacao: observacao,
+      fonte: fonte
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        mode: "no-cors"
+      });
+      enviados += 1;
+    } catch (erro) {
+      falhas += 1;
+      console.error("Falha ao enviar registro do lote:", erro);
+    }
+    document.getElementById("status").textContent = `Enviando lote... ${enviados}/${validos.length}`;
+  }
+
+  document.getElementById("status").textContent =
+    `✅ Lote concluído: enviados ${enviados}/${validos.length}` +
+    (falhas ? ` | falhas: ${falhas}` : "") +
+    (ignorados ? ` | ignorados: ${ignorados}` : "");
+}
+
+function executarAutoTestesParser() {
+  const amostra = `
+    20,4196S 43,8829W BR 040, km 597,0-Sul Altura viaduto: LE 6,01m, LC 6,50m, LD 7,00m
+    20,4200S 43,8831W BR 040, km 598,0-Norte Altura viaduto: LE 5,90m, LC 6,20m, LD 6,80m
+  `;
+
+  const coords = extrairTodasCoordenadasComIndice(amostra);
+  const registros = extrairRegistrosDaPagina(amostra, 1);
+  const km = extrairRodoviaKm(amostra);
+
+  console.assert(coords.length >= 2, "Teste parser: deve encontrar 2 coordenadas.");
+  console.assert(registros.length >= 2, "Teste parser: deve montar 2 registros.");
+  console.assert(!!km, "Teste parser: deve identificar BR/KM.");
+}
+
 /* ===== INICIALIZA ===== */
 iniciarLocalizacao();
+executarAutoTestesParser();
 </script>
 <script type="module">
   import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs";
