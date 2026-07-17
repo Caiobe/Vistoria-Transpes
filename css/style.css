@@ -75,8 +75,11 @@ label {
   margin-bottom: 6px;
 }
 
+
+
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+textarea {
   width: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -140,6 +143,13 @@ button {
   margin-top: 14px;
 }
 
+.larguras-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+
 .save-btn {
   width: 100%;
   padding: 15px;
@@ -157,6 +167,7 @@ button {
 .save-btn:active {
   opacity: 0.85;
 }
+
 
 /* Hover só entra em dispositivos com mouse de verdade, pra não deixar o toque "preso" no estado hover */
 @media (hover: hover) {
