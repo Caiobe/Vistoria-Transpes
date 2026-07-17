@@ -13,37 +13,143 @@
 * { box-sizing: border-box; }
 
 body {
-  margin: 0 auto;
-  max-width: 480px;
+  margin: 0;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding: 20px 16px 60px;
+  padding: 20px;
 }
 
+/* ============ HEADER ============ */
 header {
   text-align: center;
   margin-bottom: 24px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
+.header-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*border: 2px solid red;*/
+}
+
+.header-logo {
+  height: 25px;
+  display: block;
+
+}
+
+.header
+
+
+
 header h1 {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   margin: 0 0 4px;
   letter-spacing: 0.02em;
+  color: var(--accent);
 }
 
 header p {
   margin: 0;
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
+/* ============ CONTAINER PRINCIPAL - GRID 2x4 ============ */
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============ POSICIONAMENTO DOS CARDS NA GRID ============ */
+
+/* Linha 1 - Coluna 1: Localização */
+.card-localizacao {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+/* Linha 1 - Coluna 2: Rodovia + Objeto */
+.card-rodovia-objeto {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Sub-cards dentro do card-rodovia-objeto */
+.sub-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.sub-card h3 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+/* Linha 2 - Coluna 1: Alturas */
+.card-alturas {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+/* Linha 2 - Coluna 2: Larguras */
+.card-larguras {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+/* Linha 3 - Coluna 1: Diversos */
+.card-diversos {
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+}
+
+/* Linha 3 - Coluna 2: Fotos */
+.card-fotos {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
+}
+
+/* Linha 4 - Colunas 1 e 2: Ações */
+.card-acoes {
+  grid-column: 1 / 3;
+  grid-row: 4 / 5;
+}
+
+/* ============ CARDS (estilo base) ============ */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 18px;
-  margin-bottom: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--accent-dim);
 }
 
 .card h2 {
@@ -52,9 +158,11 @@ header p {
   letter-spacing: 0.08em;
   color: var(--muted);
   margin: 0 0 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
 }
 
-/* Linhas de campos lado a lado (localização e BR/km compartilham o mesmo layout) */
+/* ============ LAYOUT DE LINHAS ============ */
 .loc-row,
 .br-km-row {
   display: flex;
@@ -65,9 +173,33 @@ header p {
 .br-field,
 .km-field {
   flex: 1;
-  min-width: 0; /* evita que inputs estourem o flex em telas estreitas */
+  min-width: 0;
 }
 
+.hora-row {
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.hora-field {
+  width: 100%;
+}
+
+.hora-field input {
+  background: var(--card);
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+}
+
+.hora-field input::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ============ LABELS ============ */
 label {
   display: block;
   font-size: 0.8rem;
@@ -75,8 +207,7 @@ label {
   margin-bottom: 6px;
 }
 
-
-
+/* ============ INPUTS ============ */
 input[type="text"],
 input[type="number"],
 textarea {
@@ -84,13 +215,14 @@ textarea {
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(255, 122, 61, 0.2);
@@ -101,14 +233,17 @@ input[readonly] {
   background: var(--card);
 }
 
-button {
+textarea {
+  resize: vertical;
+  min-height: 60px;
   font-family: inherit;
 }
 
+/* ============ BOTÃO CAPTURAR ============ */
 .capture-btn {
   width: 100%;
   margin-top: 12px;
-  padding: 13px;
+  padding: 12px;
   border-radius: 8px;
   border: 1px solid var(--accent);
   background: var(--accent-dim);
@@ -116,13 +251,15 @@ button {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .capture-btn:active {
   opacity: 0.8;
+  transform: scale(0.98);
 }
 
+/* ============ STATUS ============ */
 .status {
   font-size: 0.8rem;
   margin-top: 8px;
@@ -133,26 +270,216 @@ button {
 .status.ok { color: var(--ok); }
 .status.err { color: var(--err); }
 
-.alturas-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.altura-extra {
-  margin-top: 14px;
-}
-
+/* ============ GRIDS DE MEDIÇÃO ============ */
+.alturas-grid,
 .larguras-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
+.altura-extra,
+.largura-extra {
+  margin-top: 12px;
+}
+
+/* ============ BOTÕES DE SELEÇÃO (ALTURA, LARGURA, DIVERSOS) ============ */
+.botoes-medicao {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-medicao {
+  flex: 1;
+  min-width: 70px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-medicao:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.btn-medicao:active {
+  transform: translateY(0);
+}
+
+.btn-medicao:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-medicao.ativo {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ============ CARD DIVERSOS ============ */
+.diversos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diversos-grid div {
+  display: flex;
+  flex-direction: column;
+}
+
+.diversos-grid textarea {
+  min-height: 80px;
+}
+
+/* ============ CARD FOTOS ============ */
+.foto-upload {
+  margin-bottom: 12px;
+}
+
+.foto-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  gap: 6px;
+}
+
+.foto-label:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.foto-label:active {
+  transform: scale(0.98);
+}
+
+.foto-icone {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.foto-label span:nth-child(2) {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.foto-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.fotos-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 50px;
+}
+
+.foto-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.foto-item .foto-remover {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.foto-item .foto-remover:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.1);
+}
+
+.foto-item .foto-numero {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.fotos-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 6px;
+  min-height: 1.1em;
+}
+
+.fotos-status.ok {
+  color: var(--ok);
+}
+
+.fotos-status.err {
+  color: var(--err);
+}
+
+/* ============ BOTÕES DE AÇÃO ============ */
+.botoes-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 0;
+}
 
 .save-btn {
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   border-radius: 10px;
   border: none;
   background: var(--accent);
@@ -160,16 +487,61 @@ button {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
-  transition: opacity 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .save-btn:active {
   opacity: 0.85;
+  transform: scale(0.98);
 }
 
+.botoes-duplos {
+  display: flex;
+  gap: 10px;
+}
 
-/* Hover só entra em dispositivos com mouse de verdade, pra não deixar o toque "preso" no estado hover */
+.botoes-duplos button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.report-btn {
+  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+}
+
+.report-btn:hover {
+  background: var(--accent-dim);
+  transform: translateY(-2px);
+}
+
+.report-btn:active {
+  transform: translateY(0);
+}
+
+.clear-btn {
+  border: 2px solid var(--err);
+  background: transparent;
+  color: var(--err);
+}
+
+.clear-btn:hover {
+  background: rgba(255, 107, 107, 0.1);
+  transform: translateY(-2px);
+}
+
+.clear-btn:active {
+  transform: translateY(0);
+}
+
+/* ============ HOVER (apenas para mouse) ============ */
 @media (hover: hover) {
   .capture-btn:hover {
     background: #5a3826;
@@ -180,8 +552,103 @@ button {
   }
 }
 
-/* Foco visível pra quem navega por teclado */
-button:focus-visible {
+/* ============ ACESSIBILIDADE ============ */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* ============================================================
+   ============ RESPONSIVIDADE ============
+   ============================================================ */
+
+/* Telas médias (até 900px) - vira 1 coluna */
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 12px;
+  }
+
+  /* Todos os cards ocupam 1 coluna */
+  .card-localizacao,
+  .card-rodovia-objeto,
+  .card-alturas,
+  .card-larguras,
+  .card-diversos,
+  .card-fotos,
+  .card-acoes {
+    grid-column: 1 / 2;
+    grid-row: auto;
+  }
+
+  /* Sub-cards do rodovia-objeto ficam lado a lado em telas médias */
+  .card-rodovia-objeto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .sub-card {
+    margin: 0;
+  }
+}
+
+/* Telas pequenas (até 600px) */
+@media (max-width: 600px) {
+  body {
+    padding: 12px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  .card-rodovia-objeto {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .alturas-grid,
+  .larguras-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .botoes-medicao {
+    flex-direction: column;
+  }
+
+  .btn-medicao {
+    width: 100%;
+  }
+
+  .botoes-duplos {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .botoes-duplos button {
+    width: 100%;
+  }
+
+  .fotos-preview {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+}
+
+/* Telas muito pequenas (até 400px) */
+@media (max-width: 400px) {
+  .loc-row,
+  .br-km-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .alturas-grid,
+  .larguras-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

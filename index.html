@@ -1,104 +1,175 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <Title>PicPes - Registro Fotográfico</Title>
+    <title>PicPes - Registro Fotográfico</title>
     <link rel="icon" type="image/svg+xml" href="assets/icon-blockquote.svg">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
 </head>
-
 <body>
+    
 <header>
-    <h1>Registro de Vistoria</h1>
+    <div class="header-titulo">
+        <img src="assets/icon-blockquote.ico" alt="Logo Transpes" class="header-logo">
+        <h1>Registro de Vistoria</h1>
+    </div>
     <p>Localização, rodovia e medidas em campo</p>
 </header>
 
-<div class="card">
-    <h2>Localização</h2>
-    <div class="loc-row">
-        <div class="loc-field">
-            <label for="latitude">Latitude</label>
-            <input type="text" id="latitude" readonly placeholder="—">
-        </div>
-        <div class="loc-field">
-            <label for="longitude">Longitude</label>
-            <input type="text" id="longitude" readonly placeholder="—">
-        </div>
-    </div>
-    <button class="capture-btn" id="capturarBtn" type="button">Capturar localização</button>
-    <div class="status" id="locStatus"></div>
-</div>
+    <!-- ============ CONTAINER 3 COLUNAS ============ -->
+    <div class="container">
 
-<div class="card">
-    <h2>Rodovia</h2>
-    <div class="br-km-row">
-        <div class="br-field">
-            <label for="br">Via</label>
-            <input type="text" id="br" placeholder="Ex: BR-040">
+        <!-- ============ COLUNA 1: LOCALIZAÇÃO ============ -->
+        <div class="card card-full">
+            <h2>📍 Localização</h2>
+            <div class="loc-row">
+                <div class="loc-field">
+                    <label for="latitude">Latitude</label>
+                    <input type="text" id="latitude" placeholder="Ex: -23.550520">
+                </div>
+                <div class="loc-field">
+                    <label for="longitude">Longitude</label>
+                    <input type="text" id="longitude" placeholder="Ex: -46.633308">
+                </div>
+            </div>
+            <div class="hora-row">
+                <div class="hora-field">
+                    <label for="hora">🕐 Hora da medição</label>
+                    <input type="text" id="hora" readonly placeholder="--:--:--">
+                </div>
+            </div>
+            <button class="capture-btn" id="capturarBtn" type="button">📍 Capturar localização</button>
+            <div class="status" id="locStatus">Aguardando localização...</div>
         </div>
-        <div class="km-field">
-            <label for="km">Quilometragem</label>
-            <input type="number" id="km" placeholder="Ex: 123.4" step="0.1">
-        </div>
-    </div>
-</div>
 
-<div class="card">
-    <h2>Objeto</h2>
-    <div>
-        <input class="objeto" type="text" id="objeto-medido" placeholder="o que está sendo medido?">
-    </div>
-</div>
+        <!-- ============ COLUNA 2: RODOVIA ============ -->
+        <div class="card">
+            <h2>🛣️ Rodovia</h2>
+            <div class="br-km-row">
+                <div class="br-field">
+                    <label for="br">Via</label>
+                    <input type="text" id="br" placeholder="Ex: BR-040">
+                </div>
+                <div class="km-field">
+                    <label for="km">Quilometragem</label>
+                    <input type="number" id="km" placeholder="Ex: 123.4" step="0.1">
+                </div>
+            </div>
+        </div>
 
-<div class="card">
-    <h2>Alturas medidas</h2>
-    <div class="alturas-grid">
-        <div>
-            <label for="altura1">Lado Esquerdo</label>
-            <input type="number" id="altura1" placeholder="m" step="0.01">
+        <!-- ============ COLUNA 3: OBJETO ============ -->
+        <div class="card">
+            <h2>📦 Objeto</h2>
+            <div>
+                <input class="objeto" type="text" id="objeto-medido" placeholder="O que está sendo medido?">
+            </div>
+            <div class="botoes-medicao">
+                <button class="btn-medicao ativo" data-tipo="altura" id="btnAltura">📏 Altura</button>
+                <button class="btn-medicao" data-tipo="largura" id="btnLargura">📐 Largura</button>
+                <button class="btn-medicao" data-tipo="diversos" id="btnDiversos">📝 Diversos</button>
+            </div>
         </div>
-        <div>
-            <label for="altura2">Faixa Central</label>
-            <input type="number" id="altura2" placeholder="m" step="0.01">
-        </div>
-        <div>
-            <label for="altura3">Lado Direito</label> <!-- CORRIGIDO: estava "Lado Esquerdo" -->
-            <input type="number" id="altura3" placeholder="m" step="0.01">
-        </div>
-    </div>
 
-    <div class="altura-extra">
-        <label for="alturaAdicional">Alturas adicionais</label>
-        <!-- ADICIONADO: ID -->
-        <textarea id="alturaAdicional" rows="4" cols="50" placeholder="informações adicionais"></textarea>
-    </div>
-</div>
-
-<div class="card">
-    <h2>Larguras medidas</h2>
-    <div class="larguras-grid">
-        <div>
-            <label for="largura1">Largura total</label>
-            <input type="number" id="largura1" placeholder="m" step="0.01">
+        <!-- ============ CARD ALTURAS ============ -->
+        <div class="card card-medicao" id="cardAlturas">
+            <h2>📏 Alturas medidas</h2>
+            <div class="alturas-grid">
+                <div>
+                    <label for="altura1">Lado Esquerdo</label>
+                    <input type="number" id="altura1" placeholder="m" step="0.01">
+                </div>
+                <div>
+                    <label for="altura2">Faixa Central</label>
+                    <input type="number" id="altura2" placeholder="m" step="0.01">
+                </div>
+                <div>
+                    <label for="altura3">Lado Direito</label>
+                    <input type="number" id="altura3" placeholder="m" step="0.01">
+                </div>
+            </div>
+            <div class="altura-extra">
+                <label for="alturaAdicional">Alturas adicionais</label>
+                <textarea id="alturaAdicional" rows="3" placeholder="Informações adicionais sobre alturas"></textarea>
+            </div>
         </div>
-        <div>
-            <label for="largura2">Passeio esquerdo</label>
-            <input type="number" id="largura2" placeholder="m" step="0.01">
-        </div>
-        <div>
-            <label for="largura3">Passeio direito</label>
-            <input type="number" id="largura3" placeholder="m" step="0.01">
-        </div>
-    </div>
-    <div class="largura-extra">
-        <label for="larguraAdicional">Larguras adicionais</label>
-        <!-- ADICIONADO: ID -->
-        <textarea id="larguraAdicional" rows="4" cols="50" placeholder="informações adicionais"></textarea>
-    </div>
-</div>
 
-<button class="save-btn" id="salvarBtn" type="button">Salvar registro</button>
+        <!-- ============ CARD LARGURAS ============ -->
+        <div class="card card-medicao" id="cardLarguras" style="display: none;">
+            <h2>📐 Larguras medidas</h2>
+            <div class="larguras-grid">
+                <div>
+                    <label for="largura1">Largura total</label>
+                    <input type="number" id="largura1" placeholder="m" step="0.01">
+                </div>
+                <div>
+                    <label for="largura2">Passeio esquerdo</label>
+                    <input type="number" id="largura2" placeholder="m" step="0.01">
+                </div>
+                <div>
+                    <label for="largura3">Passeio direito</label>
+                    <input type="number" id="largura3" placeholder="m" step="0.01">
+                </div>
+            </div>
+            <div class="largura-extra">
+                <label for="larguraAdicional">Larguras adicionais</label>
+                <textarea id="larguraAdicional" rows="3" placeholder="Informações adicionais sobre larguras"></textarea>
+            </div>
+        </div>
 
-<script src="js/script.js"></script>
+        <!-- ============ CARD DIVERSOS ============ -->
+        <div class="card card-medicao" id="cardDiversos" style="display: none;">
+            <h2>📝 Informações diversas</h2>
+            <div class="diversos-grid">
+                <div>
+                    <label for="diversosLabel">Título/Descrição</label>
+                    <input type="text" id="diversosLabel" placeholder="Ex: Observações, condições climáticas">
+                </div>
+                <div>
+                    <label for="diversosTexto">Texto livre</label>
+                    <textarea id="diversosTexto" rows="4" placeholder="Descreva aqui qualquer informação adicional..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ CARD FOTOS ============ -->
+        <div class="card card-full">
+            <h2>📸 Fotos</h2>
+            <div class="foto-upload">
+                <label for="fotosInput" class="foto-label">
+                    <span class="foto-icone">📷</span>
+                    <span>Clique para adicionar fotos</span>
+                    <span class="foto-sub">(máximo 200 fotos)</span>
+                </label>
+                <input type="file" id="fotosInput" accept="image/*" multiple style="display: none;">
+            </div>
+            <div id="fotosPreview" class="fotos-preview"></div>
+            <div id="fotosStatus" class="fotos-status">Nenhuma foto no preview</div>
+        </div>
+
+        <!-- ============ BOTÕES DE AÇÃO ============ -->
+        <div class="card card-full-3">
+            <h2>⚡ Ações</h2>
+            <div class="botoes-acoes">
+                <button class="save-btn" id="salvarBtn" type="button">💾 Salvar registro</button>
+                <div class="botoes-duplos">
+                    <button class="report-btn" id="gerarRelatorioBtn" type="button">📊 Gerar Relatório</button>
+                    <button class="clear-btn" id="limparRegistrosBtn" type="button">🗑️ Limpar registros</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- ============ FIM DO CONTAINER ============ -->
+ <footer class="footer">
+   <div class="footer__context">
+     <span>© 2026 - Registro de vistórias - Todos os direitos reservados </span>
+     <span> | </span>
+     <span>Versão 1.0</span>
+     <span> | </span>
+     <span>Desenvolvido por <a class="footer__link" href="https://www.linkedin.com/in/marcioHUNK" target="_blank" rel="noopener noreferrer">Márcio Carvalho</a></span>
+     </div>
+    <script src="js/script.js"></script>
 </body>
 </html>
