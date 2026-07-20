@@ -652,3 +652,26 @@ textarea:focus-visible {
   }
 }
 
+/* ============================================================
+   ============ RODAPÉ ============
+   ============================================================ */
+
+.footer {
+  position: flex;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--blueprint-bg);
+  color: var(--paper);
+  text-align: center;
+  padding: 10px 0;
+  font-family: var(--font-data);
+  font-size: 10px;
+}
+
+.footer__link {
+  color: var(--paper);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
